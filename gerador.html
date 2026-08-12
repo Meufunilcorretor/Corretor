@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestão de Códigos — MeuFunilCorretor</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f4faf7;min-height:100vh;padding:20px}
+.wrap{max-width:860px;margin:0 auto}
+h1{color:#1D9E75;font-size:22px;margin-bottom:4px}
+.sub{color:#888;font-size:14px;margin-bottom:24px}
+.card{background:#fff;border-radius:16px;padding:24px;box-shadow:0 4px 20px rgba(0,0,0,0.08);margin-bottom:20px}
+.card h2{font-size:16px;color:#085041;margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid #E1F5EE}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600}
+.badge.livre{background:#E1F5EE;color:#085041}
+.badge.usado{background:#FEE;color:#c00}
+.badge.revogado{background:#eee;color:#888}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#085041;color:#fff;padding:10px;text-align:left}
+td{padding:8px 10px;border-bottom:1px solid #eee;vertical-align:middle}
+tr:nth-child(even) td{background:#fafafa}
+.cod{font-family:monospace;font-weight:700;color:#085041;font-size:13px;letter-spacing:1px}
+.alerta{background:#fff8e1;border:1px solid #f0c040;border-radius:8px;padding:12px;font-size:13px;color:#7a6200;line-height:1.6;margin-bottom:16px}
+button.sec{background:none;border:1px solid #1D9E75;color:#1D9E75;border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;white-space:nowrap}
+button.sec:hover{background:#E1F5EE}
+button.danger{background:none;border:1px solid #c00;color:#c00;border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer}
+button.primary{background:#1D9E75;color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:14px;font-weight:600;cursor:pointer}
+button.primary:hover{background:#085041}
+.backup-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+.backup-row button{flex:1;min-width:140px}
+input[type=text]{padding:6px 8px;font-size:12px;border:1px solid #ddd;border-radius:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🔑 Gestão de Códigos — MeuFunilCorretor</h1>
+  <p class="sub">Distribua os 30 códigos pré-carregados. Exporte regularmente para não perder os dados.</p>
+
+  <!-- BACKUP -->
+  <div class="card">
+    <h2>💾 Backup dos dados</h2>
+    <p style="font-size:13px;color:#666;margin-bottom:12px">Exporte sempre que distribuir ou revogar um código. Caso limpe o navegador, importe para restaurar tudo.</p>
+    <div class="backup-row">
+      <button class="primary" onclick="exportarDados()">⬇️ Exportar backup (.json)</button>
+      <button class="sec" onclick="document.getElementById('import-file').click()">⬆️ Importar backup</button>
+      <input type="file" id="import-file" accept=".json" style="display:none" onchange="importarDados(this)">
+    </div>
+  </div>
+
+  <!-- TABELA -->
+  <div class="card">
+    <h2 id="titulo-lote">📦 Lote 1 — carregando...</h2>
+    <div class="alerta">
+      ⚠️ Preencha o nome do cliente antes de distribuir. Clique em <strong>📋 Copiar msg</strong> para enviar no WhatsApp. Exporte o backup após cada ação.
+    </div>
+    <div style="overflow-x:auto">
+      <table id="tabela-lote">
+        <tr><th>#</th><th>Código</th><th>Cliente</th><th>Status</th><th>Ações</th></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+const LOTE1 = [
+  {n:1,  cod:'MFC-U8B8-U89F-GYUV'},
+  {n:2,  cod:'MFC-WT29-LVS6-5P4D'},
+  {n:3,  cod:'MFC-BWJE-4J2J-CWLK'},
+  {n:4,  cod:'MFC-4DQS-793A-NLPV'},
+  {n:5,  cod:'MFC-UPNW-TUQP-XQUT'},
+  {n:6,  cod:'MFC-MB2X-JZ7C-7FU2'},
+  {n:7,  cod:'MFC-9F3E-XDKL-DA5S'},
+  {n:8,  cod:'MFC-LF9R-HFY2-JLGL'},
+  {n:9,  cod:'MFC-D342-FAJ5-DWR2'},
+  {n:10, cod:'MFC-Y3SA-WRC8-77ET'},
+  {n:11, cod:'MFC-AG45-6QYB-2473'},
+  {n:12, cod:'MFC-VPWJ-GYHX-H2JA'},
+  {n:13, cod:'MFC-67AZ-4T3X-EWZM'},
+  {n:14, cod:'MFC-4HFE-8MZ9-CJRK'},
+  {n:15, cod:'MFC-UBT3-K8C2-MVVM'},
+  {n:16, cod:'MFC-HAZP-XQZJ-EWTJ'},
+  {n:17, cod:'MFC-3KT8-JATC-55HS'},
+  {n:18, cod:'MFC-BENP-RMMV-AUCF'},
+  {n:19, cod:'MFC-JSMZ-AJZ7-4ED9'},
+  {n:20, cod:'MFC-8MM9-FJJW-7UDR'},
+  {n:21, cod:'MFC-VJ72-D28D-QBXW'},
+  {n:22, cod:'MFC-7YMK-5ZZ7-TUAN'},
+  {n:23, cod:'MFC-JDZZ-D2F7-5HM4'},
+  {n:24, cod:'MFC-GXSD-NWLC-CCXS'},
+  {n:25, cod:'MFC-BWUJ-486P-N83N'},
+  {n:26, cod:'MFC-X39Q-SH93-ZFKV'},
+  {n:27, cod:'MFC-6AED-X7X5-SVBV'},
+  {n:28, cod:'MFC-PTET-WN3E-WNQ3'},
+  {n:29, cod:'MFC-5FF3-FM3G-6QN8'},
+  {n:30, cod:'MFC-GLEL-DQCH-ZQFV'},
+];
+
+function getEstado(){try{return JSON.parse(localStorage.getItem('mfc_codigos')||'{}')}catch(e){return{}}}
+function salvarEstado(est){localStorage.setItem('mfc_codigos',JSON.stringify(est))}
+
+function renderTabela(){
+  const est=getEstado();
+  const tbody=document.getElementById('tabela-lote');
+  tbody.innerHTML='<tr><th>#</th><th>Código</th><th>Cliente</th><th>Status</th><th>Ações</th></tr>';
+  LOTE1.forEach(item=>{
+    const s=est[item.n]||{status:'livre',cliente:''};
+    const badgeClass=s.status==='livre'?'livre':s.status==='usado'?'usado':'revogado';
+    const badgeLabel=s.status==='livre'?'Disponível':s.status==='usado'?'Em uso':'Revogado';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td style="color:#888;font-size:12px;width:30px">${item.n}</td>
+      <td class="cod">${item.cod}</td>
+      <td><input type="text" value="${(s.cliente||'').replace(/"/g,'&quot;')}" placeholder="Nome do cliente" style="width:150px" onchange="salvarCliente(${item.n},this.value)"></td>
+      <td><span class="badge ${badgeClass}">${badgeLabel}</span></td>
+      <td style="display:flex;gap:5px;flex-wrap:wrap;align-items:center">
+        ${s.status==='livre'?`<button class="sec" onclick="marcar(${item.n},'usado')">✅ Distribuir</button>`:''}
+        ${s.status==='usado'?`<button class="danger" onclick="marcar(${item.n},'revogado')">❌ Revogar</button>`:''}
+        ${s.status==='revogado'?`<button class="sec" onclick="marcar(${item.n},'livre')">🔄 Reativar</button>`:''}
+        <button class="sec" style="background:#E1F5EE" onclick="copiarMsg(${item.n},'${item.cod}')">📋 Copiar msg</button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+  const livre=LOTE1.filter(i=>(est[i.n]||{status:'livre'}).status==='livre').length;
+  const usado=LOTE1.filter(i=>(est[i.n]||{}).status==='usado').length;
+  const revog=LOTE1.filter(i=>(est[i.n]||{}).status==='revogado').length;
+  document.getElementById('titulo-lote').textContent=`📦 Lote 1 — ${livre} disponíveis · ${usado} em uso · ${revog} revogados`;
+}
+
+function salvarCliente(n,val){
+  const est=getEstado();
+  if(!est[n])est[n]={status:'livre'};
+  est[n].cliente=val;
+  salvarEstado(est);
+}
+
+function marcar(n,status){
+  const est=getEstado();
+  if(!est[n])est[n]={};
+  est[n].status=status;
+  salvarEstado(est);
+  renderTabela();
+}
+
+function copiarMsg(n,cod){
+  const est=getEstado();
+  const cliente=(est[n]||{}).cliente||'';
+  const saudacao=cliente?`Olá, ${cliente.split(' ')[0]}!`:'Olá!';
+  const msg=`${saudacao} Seu acesso ao MeuFunilCorretor está pronto 🎉\n\nAcesse o app: https://app.meufunilcorretor.com.br\n\nSeu código de ativação:\n${cod}\n\nComo ativar:\n1. Abra o link acima\n2. Digite o código e toque em Ativar\n3. Pronto — o código fica salvo, não precisa digitar de novo!\n\nDúvidas: Eng.arthurlandim@gmail.com | (11) 92166-0404`;
+  navigator.clipboard.writeText(msg)
+    .then(()=>alert('✅ Mensagem copiada!'+(cliente?` Para: ${cliente}`:'')))
+    .catch(()=>{const ta=document.createElement('textarea');ta.value=msg;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();alert('✅ Mensagem copiada!');});
+}
+
+// ─── BACKUP ───
+function exportarDados(){
+  const est=getEstado();
+  const dados={versao:1,data:new Date().toISOString(),codigos:est};
+  const blob=new Blob([JSON.stringify(dados,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='mfc_codigos_backup_'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();
+}
+
+function importarDados(input){
+  const file=input.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const dados=JSON.parse(e.target.result);
+      const codigos=dados.codigos||dados; // aceita formato com ou sem wrapper
+      if(typeof codigos!=='object')throw new Error('Formato inválido');
+      if(!confirm(`Importar backup de ${dados.data?new Date(dados.data).toLocaleString('pt-BR'):'data desconhecida'}?\n\nIsso vai substituir os dados atuais.`))return;
+      salvarEstado(codigos);
+      renderTabela();
+      alert('✅ Backup importado com sucesso!');
+    }catch(err){
+      alert('❌ Erro ao importar: arquivo inválido.');
+    }
+    input.value='';
+  };
+  reader.readAsText(file);
+}
+
+renderTabela();
+</script>
+</body>
+</html>
